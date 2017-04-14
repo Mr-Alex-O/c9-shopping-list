@@ -55,25 +55,37 @@ app.route('/items')
 app.delete('/items/:id', function(request, response){
   var id = request.params.id;
 
-  if(storage.items[id]){
-    delete storage.items[id];
-    response.status(204);
-  } else {
-    response.sendStatus(400);
+  if(!storage.items[id]){
+    return response.sendStatus(404);
   }
+  
+    delete storage.items[id];
+    response.sendStatus(204);
   
 });
 
 app.put('/items/:id', function(request, response){
   var id = request.params.id;
-  if(Object.keys(storage.items).some(key => key == id)) {
-    storage.items[id].name = request.body.name;
-    response.status(204);
-  } else {
-    response.sendStatus(404);
+  
+  if(request.body && request.body.id && id != request.body.id){
+    return response.sendStatus(400);
   }
+  
+  if(!('name' in request.body)){
+    return response.sendStatus(400);
+  }
+  
+  if(!storage.items[id]) {
+    return response.sendStatus(404);
+  }
+  
+  storage.items[id].name = request.body.name;
+  response.status(200).json(storage.items[id]);
   
 });
 
 
 app.listen(process.env.PORT || 8080, process.env.IP);
+
+exports.app = app;
+exports.storage = storage;
